@@ -4,10 +4,8 @@
 	</div>
     <md-input-container flex>
         <label><md-icon ng-if="icon">{{icon}}</md-icon>{{label}}</label>
-        <input type="input" ng-model="value" class='md-color-picker-input'  ng-mousedown="(openOnInput || !mdColorPreview) && showColorPicker($event)" ng-required="required" />
-        <div ng-message="required" ng-if="required">
-            <span>This field is required.</span>
-        </div>
+        <input type="input" ng-model="value" class='md-color-picker-input'  ng-mousedown="(openOnInput || !mdColorPreview) && showColorPicker($event)" ng-required="mdColorRequired" />
+
     </md-input-container>
 	<md-button class="md-icon-button md-color-picker-clear" ng-if="mdColorClearButton && value" ng-click="clearValue();" aria-label="Clear Color">
 		<md-icon md-svg-icon="clear.svg"></md-icon>

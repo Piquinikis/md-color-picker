@@ -440,7 +440,6 @@ angular.module('mdColorPicker', [])
 				icon: '@?',
 				random: '@?',
 				default: '@?',
-                required: '@?',
 
 				// Dialog Options
 				openOnInput: '=?',
@@ -462,7 +461,8 @@ angular.module('mdColorPicker', [])
 				mdColorHex: '=?',
 				mdColorRgb: '=?',
 				mdColorHsl: '=?',
-				mdColorDefaultTab: '=?'
+				mdColorDefaultTab: '=?',
+				mdColorRequired: '=?'
 			},
 			controller: ['$scope', '$element', '$attrs', '$mdDialog', '$mdColorPicker', function( $scope, $element, $attrs, $mdDialog, $mdColorPicker ) {
 				var didJustClose = false;
