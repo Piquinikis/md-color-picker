@@ -636,6 +636,7 @@ angular.module('mdColorPicker', [])
 
 
 				$scope.default = $scope.default ? $scope.default : $scope.random ? tinycolor.random() : 'rgb(255,255,255)';
+                $scope.value = $scope.value === undefined ? '' : $scope.value;
 				if ( $scope.value.search('#') >= 0 ) {
 					$scope.type = 0;
 				} else if ( $scope.value.search('rgb') >= 0 ) {
