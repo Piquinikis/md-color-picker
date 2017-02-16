@@ -6,7 +6,7 @@ var gulp = require('gulp'),
 	gdebug = require('gulp-debug'),
 	seq = require('run-sequence'),
 	streamqueue = require('streamqueue'),
-	closure = require('gulp-jsclosure'),
+	iife = require('gulp-iife'),
 	less = require('gulp-less'),
 	uglify = require('gulp-uglify'),
 	sourcemaps = require('gulp-sourcemaps'),
@@ -22,7 +22,10 @@ var gulp = require('gulp'),
 	st = require('st'),
 	del = require('del'),
 	merge = require('merge-stream'),
-	header = require('gulp-header');
+	header = require('gulp-header'),
+	fs = require('fs'),
+	gulpJsdoc2md = require('gulp-jsdoc-to-markdown');
+
 
 var debug = false;
 
@@ -37,9 +40,22 @@ var paths = {
 	dist: 'dist/',
 	src: {
 		demo: ['demo/**/*.*'],
-		less: ['src/less/*.less'],
-		templates: ['src/templates/*.tpl.html'],
-		js: ['src/js/*.js']
+		less: ['src/less/mdColorPicker.less'],
+		templates: ['src/templates/**/*.tpl.html'],
+		js: [
+			// Module
+			'src/js/mdColorPicker.js',
+			'src/js/mdColorPickerConfig.js',
+			'src/js/mdColorPickerContainer.js',
+			'src/js/mdColorPickerHistory.js',
+
+			// Canvases ( require the module for config )
+			'src/js/conicalGradient.js',
+			'src/js/mdColorPickerGradientCanvas.js',
+			'src/js/tabs/genericPalette.js',
+			'src/js/tabs/materialPalette.js',
+			'src/js/tabs/historyPalette.js'
+		]
 	}
 };
 
@@ -82,29 +98,39 @@ gulp.task('less', function () {
 // - Depends on templates task
 gulp.task('js', function () {
 
-	var jsStream = gulp.src(paths.src.js);
-	var templateStream = gulp.src(paths.src.templates)
-		.pipe(templateCache({module: moduleName}));
-	merge(jsStream, templateStream)
 
-		.pipe(gdebug())
+	streamqueue({objectMode: true},
+		gulp.src(paths.src.js),
+		gulp.src(paths.src.templates)
+			.pipe(templateCache({module: moduleName}))
+	)
+		// .pipe(debug({title: 'JS: '}))
+		// .pipe(sourcemaps.init())
 
+		// .pipe(sourcemaps.write('.'))
+		// .pipe(closure(['angular', 'window', 'tinycolor']))
+		// .pipe(ngAnnotate())
+		.pipe(iife({
+			useStrict: true,
+			trimCode: true,
+			prependSemicolon: true,
+			params: ['window', 'angular', 'TinyColor', 'undefined'],
+			args: ['window', 'window.angular', 'window.tinycolor']
+		}))
 
-		//.pipe(debug({title: 'JS: '}))
-		//.pipe(sourcemaps.init())
 		.pipe(concat(moduleName + '.js'))
-		//.pipe(sourcemaps.write('.'))
-		.pipe(closure(['angular', 'window', 'tinycolor']))
-		.pipe(ngAnnotate())
 		.pipe(header(banner, { pkg : pkg } ))
+
+
 		.pipe(gulp.dest(paths.dist))
+
 		.pipe(rename({suffix: '.min'}))
-		.pipe(uglify({
+		/*.pipe(uglify({
 			"compress": {
             	"drop_console": !debug,
 				"drop_debugger": !debug
         	}
-		}))
+		}))*/
 		.pipe(header(banner, { pkg : pkg } ))
 		.pipe(gulp.dest(paths.dist))
 		.pipe(livereload());
@@ -140,9 +166,18 @@ gulp.task('demo', ['demo-resources'], function () {
  =            Start local demo/dev server                           =
  ===================================================================*/
 gulp.task('server', ['build', 'demo', 'dist-resources'], function () {
+	process.on('uncaughtException', function(err) {
+	    console.log(err);
+	    try {
+			livereload.kill();
+		} catch(e) {}
+	    //process.kill();
+  	});
+
 	livereload.listen({port: ports.livereload, basePath: "."});
+
 	http.createServer(
-		st({path: path.resolve(__dirname, 'dist'), index: 'demo/redirect.html', cache: false})
+		st({path: __dirname, index: 'demo/redirect.html', cache: false})
 	).listen(ports.web);
 
 
@@ -156,7 +191,7 @@ gulp.task('watch', ['clean'], function () {
 
 	gutil.log("Started dev server @ http://localhost:" + ports.web + "/demo/index.html");
 	//gulp.watch(paths.src.html, ['html']);
-	gulp.watch(paths.src.less.concat(paths.src.js.concat(paths.src.templates)), ['build']);
+	gulp.watch(['src/less/*.less'].concat(paths.src.js.concat(paths.src.templates)), ['build']);
 	gulp.watch(paths.src.demo, ['demo']);
 
 
@@ -165,13 +200,29 @@ gulp.task('watch', ['clean'], function () {
 
 });
 
+/*=========================================
+ =            Create Doc Files            =
+ =========================================*/
+
+gulp.task('docs', function () {
+
+		return gulp.src(paths.src.js)
+    .pipe(gulpJsdoc2md())
+
+    .pipe(rename(function (path) {
+      path.extname = '.md';
+    }))
+    .pipe(gulp.dest('docs'));
+});
+
+
 
 /*=========================================
  =            Clean dest folder            =
  =========================================*/
 
 gulp.task('clean', function (cb) {
-	return del([paths.dist + '/**/*']);
+	return del([paths.dist + '/**/*','docs/**/*.1']);
 });
 
 
@@ -180,7 +231,16 @@ gulp.task('clean', function (cb) {
  ======================================*/
 
 gulp.task('build', function (done) {
-	var tasks = ['less', 'js', 'demo', 'dist-resources'];
+	process.on('uncaughtException', function(err) {
+	    console.log(err);
+	    try {
+			livereload.kill();
+		} catch(e) {}
+	    //process.kill();
+  	});
+
+
+	var tasks = ['less', 'js', 'demo', 'dist-resources', 'docs'];
 	seq('clean', tasks, done);
 });
 
