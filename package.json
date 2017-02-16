@@ -1,6 +1,6 @@
 {
-  "name": "md-color-picker",
-  "version": "0.2.6",
+  "name": "piquinikis-color-picker",
+  "version": "0.2.7",
   "description": "Angular-Material inspired color picker.",
   "main": "dist/mdColorPicker.min.js",
   "dependencies": {
@@ -37,7 +37,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/brianpkelley/md-color-picker"
+    "url": "git+https://github.com/Piquinikis/md-color-picker.git"
   },
   "keywords": [
     "angular",
@@ -46,7 +46,7 @@
     "color-chooser",
     "color-dialog"
   ],
-  "author": "Brian Kelley <kelley.brianp@gmail.com> (http://www.tastybytes.net)",
+  "author": "Daniel Russian <danielrussian@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/brianpkelley/md-color-picker/issues"
